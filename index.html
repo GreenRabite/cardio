@@ -203,29 +203,6 @@
             border-bottom: none;
         }
 
-        .standing-name-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .standing-rank {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .standing-rank.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-        .standing-rank.silver { background: linear-gradient(135deg, #9ca3af, #6b7280); }
-        .standing-rank.bronze { background: linear-gradient(135deg, #cd7c2e, #a55d1f); }
-
         .standing-name {
             font-size: 14px;
             font-weight: 500;
@@ -343,8 +320,11 @@
                     }
                 }
                 
-                // Sort by percentage descending (Column F)
-                participants.sort((a, b) => b.percent - a.percent);
+                // Sort by percentage descending, then alphabetically by name
+                participants.sort((a, b) => {
+                    if (b.percent !== a.percent) return b.percent - a.percent;
+                    return a.name.localeCompare(b.name);
+                });
                 
                 // Render standings table
                 let html = `
@@ -361,20 +341,14 @@
                         <tbody>
                 `;
                 
-                participants.forEach((p, index) => {
-                    const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                participants.forEach((p) => {
                     const runClass = p.run > 0 ? '' : 'zero';
                     const swimClass = p.swim > 0 ? '' : 'zero';
                     const bikeClass = p.bike > 0 ? '' : 'zero';
                     
                     html += `
                         <tr>
-                            <td>
-                                <div class="standing-name-cell">
-                                    <div class="standing-rank ${rankClass}">${index + 1}</div>
-                                    <span class="standing-name">${p.name}</span>
-                                </div>
-                            </td>
+                            <td class="standing-name">${p.name}</td>
                             <td class="standing-miles ${runClass}">${p.run.toFixed(1)}</td>
                             <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
                             <td class="standing-miles ${bikeClass}">${p.bike.toFixed(1)}</td>
