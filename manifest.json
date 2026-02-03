@@ -1,20 +1,19 @@
 {
-    "name": "Cardio Challenge Feb 2026",
-    "short_name": "Cardio",
-    "description": "Track your cardio challenge progress",
-    "start_url": "https://greenrabite.github.io/cardio/",
-    "scope": "https://greenrabite.github.io/cardio/",
-    "id": "https://greenrabite.github.io/cardio/",
-    "display": "standalone",
-    "background_color": "#1a1a2e",
-    "theme_color": "#1a1a2e",
-    "orientation": "portrait",
-    "icons": [
-        {
-            "src": "https://greenrabite.github.io/cardio/icon.svg",
-            "sizes": "any",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
-        }
-    ]
+  "name": "Cardio Challenge Feb 2026",
+  "short_name": "Cardio",
+  "description": "Track your cardio challenge progress",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
