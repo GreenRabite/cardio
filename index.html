@@ -335,7 +335,9 @@
                         const bike = parseFloat(row[4]?.v) || 0;
                         const percent = parseFloat(row[5]?.v) || 0;
                         
-                        if (name && name !== 'Combined' && name !== '') {
+                        // Skip non-participant rows
+                        const skipNames = ['Combined', 'Log Your Activity', 'Log Your Acitivity', ''];
+                        if (name && !skipNames.includes(name)) {
                             participants.push({ name, run, swim, bike, percent });
                         }
                     }
