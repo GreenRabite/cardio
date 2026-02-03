@@ -375,6 +375,13 @@
         
         // Load standings on page load
         loadStandings();
+        
+        // Register service worker for offline support and auto-updates
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service worker registered'))
+                .catch((err) => console.log('Service worker registration failed:', err));
+        }
     </script>
 </body>
 </html>
