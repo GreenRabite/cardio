@@ -302,20 +302,21 @@
                 const data = JSON.parse(jsonString[1]);
                 const rows = data.table.rows;
                 
-                // Extract participant data (rows 3-9 in the sheet, index 3-9)
-                // Based on the sheet structure: Name, Run, Swim, Bike, %
+                // Sheet structure (Week 1 columns):
+                // A(0)=Name, B(1)=Email, C(2)=Run, D(3)=Swim, E(4)=Bike, F(5)=Percentage
+                // Row 0 is header, rows 1+ are participants
                 const participants = [];
                 
-                for (let i = 3; i <= 10; i++) {
+                for (let i = 1; i < rows.length; i++) {
                     if (rows[i] && rows[i].c && rows[i].c[0]) {
                         const row = rows[i].c;
                         const name = row[0]?.v || '';
-                        const run = parseFloat(row[1]?.v) || 0;
-                        const swim = parseFloat(row[2]?.v) || 0;
-                        const bike = parseFloat(row[3]?.v) || 0;
-                        const percent = row[4]?.v || 0;
+                        const run = parseFloat(row[2]?.v) || 0;
+                        const swim = parseFloat(row[3]?.v) || 0;
+                        const bike = parseFloat(row[4]?.v) || 0;
+                        const percent = parseFloat(row[5]?.v) || 0;
                         
-                        if (name && name !== 'Combined') {
+                        if (name && name !== 'Combined' && name !== '') {
                             participants.push({ name, run, swim, bike, percent });
                         }
                     }
