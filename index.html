@@ -127,6 +127,116 @@
                 border-color: rgba(255, 255, 255, 0.2);
             }
         }
+
+        /* Standings Section */
+        .standings {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 24px;
+        }
+
+        .standings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .standings-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .standings-header button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .standings-header button:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .standings-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .standing-row {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .standing-row:last-child {
+            border-bottom: none;
+        }
+
+        .standing-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .standing-rank.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .standing-rank.silver { background: linear-gradient(135deg, #9ca3af, #6b7280); }
+        .standing-rank.bronze { background: linear-gradient(135deg, #cd7c2e, #a55d1f); }
+
+        .standing-name {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .standing-stats {
+            text-align: right;
+        }
+
+        .standing-percent {
+            font-size: 15px;
+            font-weight: 600;
+            color: #4ade80;
+        }
+
+        .standing-details {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 2px;
+        }
+
+        .standings-loading, .standings-error {
+            padding: 24px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+
+        .standings-error {
+            color: #f87171;
+        }
+
+        .combined-row {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .combined-row .standing-name {
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -155,8 +265,102 @@
         </a>
     </div>
 
+    <div class="standings">
+        <div class="standings-header">
+            <h2>Week 1 Standings</h2>
+            <button onclick="loadStandings()">Refresh</button>
+        </div>
+        <div class="standings-list" id="standings-list">
+            <div class="standings-loading">Loading standings...</div>
+        </div>
+    </div>
+
     <div class="footer">
         <p>Add to Home Screen for quick access</p>
     </div>
+
+    <script>
+        const SHEET_ID = '1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ';
+        const SHEET_GID = '0';
+        
+        async function loadStandings() {
+            const container = document.getElementById('standings-list');
+            container.innerHTML = '<div class="standings-loading">Loading standings...</div>';
+            
+            try {
+                // Fetch data using Google Visualization API (requires sheet to be published)
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Parse the JSONP-like response
+                const jsonString = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+                if (!jsonString) {
+                    throw new Error('Could not parse response. Make sure the sheet is published to web.');
+                }
+                
+                const data = JSON.parse(jsonString[1]);
+                const rows = data.table.rows;
+                
+                // Extract participant data (rows 3-9 in the sheet, index 3-9)
+                // Based on the sheet structure: Name, Run, Swim, Bike, %
+                const participants = [];
+                
+                for (let i = 3; i <= 10; i++) {
+                    if (rows[i] && rows[i].c && rows[i].c[0]) {
+                        const row = rows[i].c;
+                        const name = row[0]?.v || '';
+                        const run = parseFloat(row[1]?.v) || 0;
+                        const swim = parseFloat(row[2]?.v) || 0;
+                        const bike = parseFloat(row[3]?.v) || 0;
+                        const percent = row[4]?.v || 0;
+                        
+                        if (name && name !== 'Combined') {
+                            participants.push({ name, run, swim, bike, percent });
+                        }
+                    }
+                }
+                
+                // Sort by percentage descending
+                participants.sort((a, b) => b.percent - a.percent);
+                
+                // Render standings
+                let html = '';
+                participants.forEach((p, index) => {
+                    const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+                    const details = [];
+                    if (p.run > 0) details.push(`🏃 ${p.run.toFixed(1)}`);
+                    if (p.swim > 0) details.push(`🏊 ${p.swim.toFixed(2)}`);
+                    if (p.bike > 0) details.push(`🚴 ${p.bike.toFixed(1)}`);
+                    
+                    html += `
+                        <div class="standing-row">
+                            <div class="standing-rank ${rankClass}">${index + 1}</div>
+                            <div class="standing-name">${p.name}</div>
+                            <div class="standing-stats">
+                                <div class="standing-percent">${(p.percent * 100).toFixed(0)}%</div>
+                                <div class="standing-details">${details.join(' ')}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html || '<div class="standings-error">No data found</div>';
+                
+            } catch (error) {
+                console.error('Error loading standings:', error);
+                container.innerHTML = `
+                    <div class="standings-error">
+                        Unable to load standings.<br>
+                        <small>Sheet must be published to web:<br>
+                        File → Share → Publish to web</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load standings on page load
+        loadStandings();
+    </script>
 </body>
 </html>
