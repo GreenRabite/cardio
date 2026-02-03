@@ -2,7 +2,7 @@
     "name": "Cardio Challenge Feb 2026",
     "short_name": "Cardio",
     "description": "Track your cardio challenge progress",
-    "start_url": "/",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#1a1a2e",
     "theme_color": "#1a1a2e",
