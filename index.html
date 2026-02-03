@@ -168,28 +168,57 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .standing-row {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
+        .standings-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .standings-table th,
+        .standings-table td {
+            padding: 12px 8px;
+            text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .standing-row:last-child {
+        .standings-table th {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .standings-table td:first-child,
+        .standings-table th:first-child {
+            text-align: left;
+            padding-left: 16px;
+        }
+
+        .standings-table td:last-child,
+        .standings-table th:last-child {
+            padding-right: 16px;
+        }
+
+        .standings-table tbody tr:last-child td {
             border-bottom: none;
         }
 
+        .standing-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .standing-rank {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            margin-right: 12px;
             flex-shrink: 0;
         }
 
@@ -198,25 +227,23 @@
         .standing-rank.bronze { background: linear-gradient(135deg, #cd7c2e, #a55d1f); }
 
         .standing-name {
-            flex: 1;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
         }
 
-        .standing-stats {
-            text-align: right;
+        .standing-miles {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .standing-miles.zero {
+            color: rgba(255, 255, 255, 0.3);
         }
 
         .standing-percent {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #4ade80;
-        }
-
-        .standing-details {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 2px;
         }
 
         .standings-loading, .standings-error {
@@ -228,14 +255,6 @@
 
         .standings-error {
             color: #f87171;
-        }
-
-        .combined-row {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .combined-row .standing-name {
-            font-weight: 600;
         }
     </style>
 </head>
@@ -322,29 +341,47 @@
                     }
                 }
                 
-                // Sort by percentage descending
+                // Sort by percentage descending (Column F)
                 participants.sort((a, b) => b.percent - a.percent);
                 
-                // Render standings
-                let html = '';
+                // Render standings table
+                let html = `
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>🏃</th>
+                                <th>🏊</th>
+                                <th>🚴</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
                 participants.forEach((p, index) => {
                     const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
-                    const details = [];
-                    if (p.run > 0) details.push(`🏃 ${p.run.toFixed(1)}`);
-                    if (p.swim > 0) details.push(`🏊 ${p.swim.toFixed(2)}`);
-                    if (p.bike > 0) details.push(`🚴 ${p.bike.toFixed(1)}`);
+                    const runClass = p.run > 0 ? '' : 'zero';
+                    const swimClass = p.swim > 0 ? '' : 'zero';
+                    const bikeClass = p.bike > 0 ? '' : 'zero';
                     
                     html += `
-                        <div class="standing-row">
-                            <div class="standing-rank ${rankClass}">${index + 1}</div>
-                            <div class="standing-name">${p.name}</div>
-                            <div class="standing-stats">
-                                <div class="standing-percent">${(p.percent * 100).toFixed(0)}%</div>
-                                <div class="standing-details">${details.join(' ')}</div>
-                            </div>
-                        </div>
+                        <tr>
+                            <td>
+                                <div class="standing-name-cell">
+                                    <div class="standing-rank ${rankClass}">${index + 1}</div>
+                                    <span class="standing-name">${p.name}</span>
+                                </div>
+                            </td>
+                            <td class="standing-miles ${runClass}">${p.run.toFixed(1)}</td>
+                            <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
+                            <td class="standing-miles ${bikeClass}">${p.bike.toFixed(1)}</td>
+                            <td class="standing-percent">${(p.percent * 100).toFixed(0)}%</td>
+                        </tr>
                     `;
                 });
+                
+                html += '</tbody></table>';
                 
                 container.innerHTML = html || '<div class="standings-error">No data found</div>';
                 
