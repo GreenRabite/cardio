@@ -171,6 +171,7 @@
         .standings-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .standings-table th,
@@ -179,6 +180,18 @@
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        /* Fixed column widths */
+        .standings-table th:nth-child(1),
+        .standings-table td:nth-child(1) { width: 35%; }
+        .standings-table th:nth-child(2),
+        .standings-table td:nth-child(2) { width: 15%; }
+        .standings-table th:nth-child(3),
+        .standings-table td:nth-child(3) { width: 17%; }
+        .standings-table th:nth-child(4),
+        .standings-table td:nth-child(4) { width: 15%; }
+        .standings-table th:nth-child(5),
+        .standings-table td:nth-child(5) { width: 18%; }
 
         .standings-table th {
             font-size: 11px;
@@ -232,6 +245,13 @@
         .standings-error {
             color: #f87171;
         }
+
+        /* Combined Table */
+        .combined-section {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 16px;
+        }
     </style>
 </head>
 <body>
@@ -270,6 +290,10 @@
         </div>
     </div>
 
+    <div class="combined-section">
+        <div class="standings-list" id="combined-list"></div>
+    </div>
+
     <div class="footer">
         <p>Add to Home Screen for quick access</p>
     </div>
@@ -291,7 +315,9 @@
         
         async function loadStandings() {
             const container = document.getElementById('standings-list');
+            const combinedContainer = document.getElementById('combined-list');
             container.innerHTML = '<div class="standings-loading">Loading standings...</div>';
+            combinedContainer.innerHTML = '';
             
             try {
                 // Fetch data using Google Visualization API (requires sheet to be published)
@@ -312,6 +338,7 @@
                 // A(0)=Name, B(1)=Email, C(2)=Run, D(3)=Swim, E(4)=Bike, F(5)=Percentage
                 // Row 0 is header, rows 1+ are participants
                 const participants = [];
+                let combined = null;
                 
                 for (let i = 1; i < rows.length; i++) {
                     if (rows[i] && rows[i].c && rows[i].c[0]) {
@@ -322,8 +349,14 @@
                         const bike = parseFloat(row[4]?.v) || 0;
                         const percent = parseFloat(row[5]?.v) || 0;
                         
+                        // Capture Combined row
+                        if (name === 'Combined') {
+                            combined = { name, run, swim, bike, percent };
+                            continue;
+                        }
+                        
                         // Skip non-participant rows
-                        const skipNames = ['Combined', 'Log Your Activity', 'Log Your Acitivity', ''];
+                        const skipNames = ['Log Your Activity', 'Log Your Acitivity', ''];
                         if (name && !skipNames.includes(name)) {
                             participants.push({ name, run, swim, bike, percent });
                         }
@@ -370,6 +403,27 @@
                 html += '</tbody></table>';
                 
                 container.innerHTML = html || '<div class="standings-error">No data found</div>';
+                
+                // Render combined table
+                if (combined) {
+                    const runClass = combined.run > 0 ? '' : 'zero';
+                    const swimClass = combined.swim > 0 ? '' : 'zero';
+                    const bikeClass = combined.bike > 0 ? '' : 'zero';
+                    
+                    combinedContainer.innerHTML = `
+                        <table class="standings-table">
+                            <tbody>
+                                <tr>
+                                    <td class="standing-name">${combined.name}</td>
+                                    <td class="standing-miles ${runClass}">${combined.run.toFixed(1)}</td>
+                                    <td class="standing-miles ${swimClass}">${combined.swim.toFixed(2)}</td>
+                                    <td class="standing-miles ${bikeClass}">${combined.bike.toFixed(1)}</td>
+                                    <td class="standing-percent" style="color: ${getPercentColor(combined.percent)}">${(combined.percent * 100).toFixed(0)}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    `;
+                }
                 
             } catch (error) {
                 console.error('Error loading standings:', error);
