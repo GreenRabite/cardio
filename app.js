@@ -2,6 +2,9 @@ const SHEET_ID = '1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ';
 const SHEET_GID = '0';
 const MAX_WEEK = 4; // Total number of weeks in the challenge
 
+// Week date ranges - populated from spreadsheet header row
+let weekDates = [''];
+
 let currentWeek = 1;
 
 // Get column indices for a given week
@@ -15,13 +18,36 @@ function getWeekColumns(week) {
     return { run: baseCol, swim: baseCol + 1, bike: baseCol + 2, percent: baseCol + 3 };
 }
 
+// Get date column indices for a given week
+// Week 1: cols 3 & 4, Week 2: cols 8 & 9, etc. (offset by 5 each week)
+function getWeekDateColumns(week) {
+    const baseCol = 3 + (week - 1) * 5;
+    return { start: baseCol, end: baseCol + 1 };
+}
+
+// Format date from spreadsheet (handles Date objects or strings)
+function formatDate(value) {
+    if (!value) return '';
+    if (value instanceof Date) {
+        return `${String(value.getMonth() + 1).padStart(2, '0')}/${String(value.getDate()).padStart(2, '0')}`;
+    }
+    // If it's already a formatted string, return as-is
+    return String(value);
+}
+
+// Update week title and subtitle
+function updateWeekDisplay(week) {
+    document.getElementById('week-title').textContent = `Week ${week}`;
+    document.getElementById('week-subtitle').textContent = weekDates[week] || '';
+}
+
 // Change week and reload standings
 function changeWeek(delta) {
     const newWeek = currentWeek + delta;
     if (newWeek < 1 || newWeek > MAX_WEEK) return;
     
     currentWeek = newWeek;
-    document.getElementById('week-title').textContent = `Week ${currentWeek}`;
+    updateWeekDisplay(currentWeek);
     
     // Update chevron states
     document.getElementById('week-prev').classList.toggle('disabled', currentWeek === 1);
@@ -61,6 +87,26 @@ async function loadStandings() {
         
         const data = JSON.parse(jsonString[1]);
         const rows = data.table.rows;
+
+        console.log(rows);
+        
+        // Parse dates from header row (row 0) for all weeks
+        const headerRow = rows[0]?.c || [];
+        weekDates = [''];  // Reset, index 0 is placeholder
+        for (let week = 1; week <= MAX_WEEK; week++) {
+            const dateCols = getWeekDateColumns(week);
+            const startDate = headerRow[dateCols.start]?.f;
+            const endDate = headerRow[dateCols.end]?.f;
+            
+            if (startDate && endDate) {
+                weekDates[week] = `${formatDate(startDate)} to ${formatDate(endDate)}`;
+            } else {
+                weekDates[week] = '';
+            }
+        }
+        
+        // Update week title and subtitle
+        updateWeekDisplay(currentWeek);
         
         // Get column indices for current week
         const cols = getWeekColumns(currentWeek);
