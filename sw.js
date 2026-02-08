@@ -2,6 +2,7 @@ const CACHE_NAME = 'cardio-v1';
 const ASSETS = [
   './',
   './index.html',
+  './app.js',
   './icon.png',
   './manifest.json'
 ];
