@@ -98,9 +98,7 @@ function changeWeek(delta) {
 
 // Generate skeleton loading HTML
 function getSkeletonHTML(rows = 6, excludeHeaders = false) {
-    let skeletonRows = '';
-    for (let i = 0; i < rows; i++) {
-        skeletonRows += `
+    const skeletonRows = Array.from({ length: rows }, () => `
             <tr class="skeleton-row">
                 <td><div class="skeleton-bar name"></div></td>
                 <td><div class="skeleton-bar number"></div></td>
@@ -108,8 +106,7 @@ function getSkeletonHTML(rows = 6, excludeHeaders = false) {
                 <td><div class="skeleton-bar number"></div></td>
                 <td><div class="skeleton-bar percent"></div></td>
             </tr>
-        `;
-    }
+        `).join('');
 
     const headers = `<thead>
                 <tr>
