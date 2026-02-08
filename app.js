@@ -97,7 +97,7 @@ function changeWeek(delta) {
 }
 
 // Generate skeleton loading HTML
-function getSkeletonHTML(rows = 6) {
+function getSkeletonHTML(rows = 6, excludeHeaders = false) {
     let skeletonRows = '';
     for (let i = 0; i < rows; i++) {
         skeletonRows += `
@@ -110,9 +110,8 @@ function getSkeletonHTML(rows = 6) {
             </tr>
         `;
     }
-    return `
-        <table class="standings-table">
-            <thead>
+
+    const headers = `<thead>
                 <tr>
                     <th>Name</th>
                     <th>🏃</th>
@@ -120,7 +119,10 @@ function getSkeletonHTML(rows = 6) {
                     <th>🚴</th>
                     <th>%</th>
                 </tr>
-            </thead>
+            </thead>`;
+    return `
+        <table class="standings-table">
+            ${excludeHeaders ? '' : headers}
             <tbody>
                 ${skeletonRows}
             </tbody>
@@ -143,7 +145,7 @@ async function loadStandings() {
     const container = document.getElementById('standings-list');
     const combinedContainer = document.getElementById('combined-list');
     container.innerHTML = getSkeletonHTML(7);
-    combinedContainer.innerHTML = getSkeletonHTML(1);
+    combinedContainer.innerHTML = getSkeletonHTML(1, true);
     
     try {
         // Fetch data using Google Visualization API (requires sheet to be published)
