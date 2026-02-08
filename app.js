@@ -4,8 +4,48 @@ const MAX_WEEK = 4; // Total number of weeks in the challenge
 
 // Week date ranges - populated from spreadsheet header row
 let weekDates = [''];
+let weekInitialized = false;
 
 let currentWeek = 1;
+
+// Parse date string (MM/DD) into a Date object for current year
+function parseWeekDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.trim().split('-');
+    if (parts.length !== 2) return null;
+    const month = parseInt(parts[0], 10) - 1; // 0-indexed
+    const day = parseInt(parts[1], 10);
+    const year = new Date().getFullYear();
+    return new Date(year, month, day);
+}
+
+// Determine which week we're in based on the dates from spreadsheet
+function determineCurrentWeek() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Compare dates only
+    
+    for (let week = 1; week <= MAX_WEEK; week++) {
+        const dateRange = weekDates[week];
+        if (!dateRange) continue;
+        
+        const [startStr, endStr] = dateRange.split(' to ');
+        const startDate = parseWeekDate(startStr);
+        const endDate = parseWeekDate(endStr);
+
+        if (startDate && endDate) {
+            endDate.setHours(23, 59, 59, 999); // Include full end day
+            if (now >= startDate && now <= endDate) {
+                return week;
+            }
+        }
+    }
+    
+    // If not in any week range, check if before or after
+    const firstStart = parseWeekDate(weekDates[1]?.split(' to ')[0]);
+    if (firstStart && now < firstStart) return 1;
+    
+    return MAX_WEEK; // Default to last week if after
+}
 
 // Get column indices for a given week
 // Week 1: columns 2, 3, 4, 5 (Run, Swim, Bike, %)
@@ -56,6 +96,38 @@ function changeWeek(delta) {
     loadStandings();
 }
 
+// Generate skeleton loading HTML
+function getSkeletonHTML(rows = 6) {
+    let skeletonRows = '';
+    for (let i = 0; i < rows; i++) {
+        skeletonRows += `
+            <tr class="skeleton-row">
+                <td><div class="skeleton-bar name"></div></td>
+                <td><div class="skeleton-bar number"></div></td>
+                <td><div class="skeleton-bar number"></div></td>
+                <td><div class="skeleton-bar number"></div></td>
+                <td><div class="skeleton-bar percent"></div></td>
+            </tr>
+        `;
+    }
+    return `
+        <table class="standings-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>🏃</th>
+                    <th>🏊</th>
+                    <th>🚴</th>
+                    <th>%</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${skeletonRows}
+            </tbody>
+        </table>
+    `;
+}
+
 // Returns a color from red (0%) to green (100%)
 function getPercentColor(percent) {
     // Clamp percent between 0 and 1
@@ -70,8 +142,8 @@ function getPercentColor(percent) {
 async function loadStandings() {
     const container = document.getElementById('standings-list');
     const combinedContainer = document.getElementById('combined-list');
-    container.innerHTML = '<div class="standings-loading">Loading standings...</div>';
-    combinedContainer.innerHTML = '';
+    container.innerHTML = getSkeletonHTML(7);
+    combinedContainer.innerHTML = getSkeletonHTML(1);
     
     try {
         // Fetch data using Google Visualization API (requires sheet to be published)
@@ -88,8 +160,6 @@ async function loadStandings() {
         const data = JSON.parse(jsonString[1]);
         const rows = data.table.rows;
 
-        console.log(rows);
-        
         // Parse dates from header row (row 0) for all weeks
         const headerRow = rows[0]?.c || [];
         weekDates = [''];  // Reset, index 0 is placeholder
@@ -102,6 +172,21 @@ async function loadStandings() {
                 weekDates[week] = `${formatDate(startDate)} to ${formatDate(endDate)}`;
             } else {
                 weekDates[week] = '';
+            }
+        }
+        
+        // On first load, determine correct week based on current date
+        if (!weekInitialized) {
+            weekInitialized = true;
+            const detectedWeek = determineCurrentWeek();
+            if (detectedWeek !== currentWeek) {
+                currentWeek = detectedWeek;
+                // Update chevron states
+                document.getElementById('week-prev').classList.toggle('disabled', currentWeek === 1);
+                document.getElementById('week-next').classList.toggle('disabled', currentWeek === MAX_WEEK);
+                // Re-load with correct week's data
+                updateWeekDisplay(currentWeek);
+                return loadStandings();
             }
         }
         
@@ -219,9 +304,6 @@ loadStandings();
 document.getElementById('week-prev').addEventListener('click', () => changeWeek(-1));
 document.getElementById('week-next').addEventListener('click', () => changeWeek(1));
 document.getElementById('refresh-btn').addEventListener('click', loadStandings);
-
-// Initialize chevron states
-document.getElementById('week-prev').classList.add('disabled');
 
 // Register service worker for offline support and auto-updates
 if ('serviceWorker' in navigator) {

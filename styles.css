@@ -272,6 +272,47 @@ body {
     font-size: 14px;
 }
 
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: 200px 0;
+    }
+}
+
+.skeleton-row td {
+    padding: 12px 8px;
+}
+
+.skeleton-bar {
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.06) 100%
+    );
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+.skeleton-bar.name {
+    width: 70%;
+}
+
+.skeleton-bar.number {
+    width: 60%;
+    margin: 0 auto;
+}
+
+.skeleton-bar.percent {
+    width: 50%;
+    margin: 0 auto;
+}
+
 .standings-error {
     color: #f87171;
 }
