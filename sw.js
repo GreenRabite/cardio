@@ -1,10 +1,11 @@
-const CACHE_NAME = 'cardio-v1.5';
+const CACHE_NAME = 'cardio-v2';
 const ASSETS = [
   './',
   './index.html',
   './app.js',
-  './icon.png',
-  './manifest.json'
+  './manifest.json',
+  './icon-assets/Assets.xcassets/AppIcon.appiconset/180.png',
+  './icon-assets/Assets.xcassets/AppIcon.appiconset/512.png'
 ];
 
 // Install: cache static assets
