@@ -28,6 +28,16 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.header-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
 }
 
 .header p {

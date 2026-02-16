@@ -49,12 +49,12 @@ function determineCurrentWeek() {
 
 // Get column indices for a given week
 // Week 1: columns 2, 3, 4, 5 (Run, Swim, Bike, %)
-// Week 2+: starts at column 7, then 4 columns per week
+// Week 2+: starts at column 7, then 5 columns per week (4 data + 1 separator)
 function getWeekColumns(week) {
     if (week === 1) {
         return { run: 2, swim: 3, bike: 4, percent: 5 };
     }
-    const baseCol = 7 + (week - 2) * 4;
+    const baseCol = 7 + (week - 2) * 5;
     return { run: baseCol, swim: baseCol + 1, bike: baseCol + 2, percent: baseCol + 3 };
 }
 
