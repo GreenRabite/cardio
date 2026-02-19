@@ -1,10 +1,12 @@
-const CACHE_NAME = 'cardio-v5';
+const CACHE_NAME = 'cardio-v6';
 const ASSETS = [
   './',
   './index.html',
   './app.js',
   './styles.css',
   './manifest.json',
+  './assets/cloud.gif',
+  './assets/nu.gif',
   './icon-assets/android/mipmap-xxxhdpi/ic_launcher.png',
   './icon-assets/Assets.xcassets/AppIcon.appiconset/180.png',
   './icon-assets/Assets.xcassets/AppIcon.appiconset/512.png'
