@@ -158,7 +158,9 @@ function renderStandings() {
         } else {
             cmp = a[sortColumn] - b[sortColumn];
         }
-        return sortAsc ? cmp : -cmp;
+        const primary = sortAsc ? cmp : -cmp;
+        if (primary !== 0 || sortColumn === 'name') return primary;
+        return a.name.localeCompare(b.name);
     });
 
     let html = `
