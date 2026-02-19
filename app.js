@@ -165,7 +165,7 @@ function renderStandings() {
         <table class="standings-table">
             <thead>
                 <tr>
-                    <th class="sortable${sortColumn === 'name' ? ' active' : ''}" onclick="sortBy('name')">Name</th>
+                    <th class="sortable sort-name${sortColumn === 'name' ? ' active' : ''}" onclick="sortBy('name')">Name</th>
                     <th class="sortable${sortColumn === 'run' ? ' active' : ''}" onclick="sortBy('run')">🏃</th>
                     <th class="sortable${sortColumn === 'swim' ? ' active' : ''}" onclick="sortBy('swim')">🏊</th>
                     <th class="sortable${sortColumn === 'bike' ? ' active' : ''}" onclick="sortBy('bike')">🚴</th>

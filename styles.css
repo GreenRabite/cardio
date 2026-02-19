@@ -277,6 +277,19 @@ body {
     animation: pulse-glow 2s ease-in-out infinite;
 }
 
+.standings-table th.sort-name.active::after {
+    width: 56px;
+    height: 28px;
+    border-radius: 14px;
+    left: calc(16px + 20px);
+    background: radial-gradient(
+        ellipse,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        transparent 80%
+    );
+}
+
 @keyframes pulse-glow {
     0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
     50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
