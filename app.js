@@ -105,6 +105,7 @@ function getSkeletonHTML(rows = 6, excludeHeaders = false) {
                 <td><div class="skeleton-bar number"></div></td>
                 <td><div class="skeleton-bar number"></div></td>
                 <td><div class="skeleton-bar percent"></div></td>
+                <td></td>
             </tr>
         `).join('');
 
@@ -115,6 +116,7 @@ function getSkeletonHTML(rows = 6, excludeHeaders = false) {
                     <th>🏊</th>
                     <th>🚴</th>
                     <th>%</th>
+                    <th></th>
                 </tr>
             </thead>`;
     return `
@@ -238,6 +240,7 @@ async function loadStandings() {
                         <th>🏊</th>
                         <th>🚴</th>
                         <th>%</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -255,6 +258,7 @@ async function loadStandings() {
                     <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
                     <td class="standing-miles ${bikeClass}">${p.bike.toFixed(1)}</td>
                     <td class="standing-percent" style="color: ${getPercentColor(p.percent)}">${(p.percent * 100).toFixed(0)}%</td>
+                    <td></td>
                 </tr>
             `;
         });
@@ -269,6 +273,9 @@ async function loadStandings() {
             const swimClass = combined.swim > 0 ? '' : 'zero';
             const bikeClass = combined.bike > 0 ? '' : 'zero';
             
+            const combinedBattery = combined.percent >= 1
+                ? '<img src="./assets/cloud.gif" class="battery-sprite" alt="100%">'
+                : '<img src="./assets/nu.gif" class="battery-sprite nu-sprite" alt="">';
             combinedContainer.innerHTML = `
                 <table class="standings-table">
                     <tbody>
@@ -278,6 +285,7 @@ async function loadStandings() {
                             <td class="standing-miles ${swimClass}">${combined.swim.toFixed(2)}</td>
                             <td class="standing-miles ${bikeClass}">${combined.bike.toFixed(1)}</td>
                             <td class="standing-percent" style="color: ${getPercentColor(combined.percent)}">${(combined.percent * 100).toFixed(0)}%</td>
+                            <td class="standing-battery">${combinedBattery}</td>
                         </tr>
                     </tbody>
                 </table>

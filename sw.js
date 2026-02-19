@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cardio-v4';
+const CACHE_NAME = 'cardio-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -28,26 +28,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim(); // Take control immediately
 });
 
-// Fetch: network-first for HTML, cache-first for assets
+// Fetch: always network-first, fall back to cache when offline
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  
-  // Network-first for HTML (always get fresh content)
-  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-    return;
-  }
-  
-  // Cache-first for other assets
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

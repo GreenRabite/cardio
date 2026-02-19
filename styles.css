@@ -223,15 +223,17 @@ body {
 
 /* Fixed column widths */
 .standings-table th:nth-child(1),
-.standings-table td:nth-child(1) { width: 35%; }
+.standings-table td:nth-child(1) { width: 32%; }
 .standings-table th:nth-child(2),
-.standings-table td:nth-child(2) { width: 15%; }
+.standings-table td:nth-child(2) { width: 14%; }
 .standings-table th:nth-child(3),
-.standings-table td:nth-child(3) { width: 17%; }
+.standings-table td:nth-child(3) { width: 16%; }
 .standings-table th:nth-child(4),
-.standings-table td:nth-child(4) { width: 15%; }
+.standings-table td:nth-child(4) { width: 14%; }
 .standings-table th:nth-child(5),
-.standings-table td:nth-child(5) { width: 18%; }
+.standings-table td:nth-child(5) { width: 16%; }
+.standings-table th:nth-child(6),
+.standings-table td:nth-child(6) { width: 12%; }
 
 .standings-table th {
     font-size: 11px;
@@ -273,6 +275,26 @@ body {
 .standing-percent {
     font-size: 14px;
     font-weight: 600;
+}
+
+.standing-battery {
+    padding: 4px !important;
+    vertical-align: middle;
+    overflow: visible;
+}
+
+.battery-sprite {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    vertical-align: middle;
+    display: block;
+    margin: 0 auto;
+}
+
+.battery-sprite.nu-sprite {
+    width: 18px;
+    height: 18px;
 }
 
 .standings-loading, .standings-error {
