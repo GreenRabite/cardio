@@ -7,6 +7,9 @@ let weekDates = [''];
 let weekInitialized = false;
 
 let currentWeek = 1;
+let currentParticipants = [];
+let sortColumn = 'percent';
+let sortAsc = false;
 
 // Parse date string (MM/DD) into a Date object for current year
 function parseWeekDate(dateStr) {
@@ -140,6 +143,60 @@ function getPercentColor(percent) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
+function sortBy(column) {
+    sortColumn = column;
+    sortAsc = false;
+    renderStandings();
+}
+
+function renderStandings() {
+    const container = document.getElementById('standings-list');
+    const sorted = [...currentParticipants].sort((a, b) => {
+        let cmp;
+        if (sortColumn === 'name') {
+            cmp = a.name.localeCompare(b.name);
+        } else {
+            cmp = a[sortColumn] - b[sortColumn];
+        }
+        return sortAsc ? cmp : -cmp;
+    });
+
+    let html = `
+        <table class="standings-table">
+            <thead>
+                <tr>
+                    <th class="sortable${sortColumn === 'name' ? ' active' : ''}" onclick="sortBy('name')">Name</th>
+                    <th class="sortable${sortColumn === 'run' ? ' active' : ''}" onclick="sortBy('run')">🏃</th>
+                    <th class="sortable${sortColumn === 'swim' ? ' active' : ''}" onclick="sortBy('swim')">🏊</th>
+                    <th class="sortable${sortColumn === 'bike' ? ' active' : ''}" onclick="sortBy('bike')">🚴</th>
+                    <th class="sortable${sortColumn === 'percent' ? ' active' : ''}" onclick="sortBy('percent')">%</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    sorted.forEach((p) => {
+        const runClass = p.run > 0 ? '' : 'zero';
+        const swimClass = p.swim > 0 ? '' : 'zero';
+        const bikeClass = p.bike > 0 ? '' : 'zero';
+
+        html += `
+            <tr>
+                <td class="standing-name">${p.name}</td>
+                <td class="standing-miles ${runClass}">${p.run.toFixed(1)}</td>
+                <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
+                <td class="standing-miles ${bikeClass}">${p.bike.toFixed(1)}</td>
+                <td class="standing-percent" style="color: ${getPercentColor(p.percent)}">${(p.percent * 100).toFixed(0)}%</td>
+                <td></td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html || '<div class="standings-error">No data found</div>';
+}
+
 async function loadStandings() {
     const container = document.getElementById('standings-list');
     const combinedContainer = document.getElementById('combined-list');
@@ -224,48 +281,10 @@ async function loadStandings() {
             }
         }
         
-        // Sort by percentage descending, then alphabetically by name
-        participants.sort((a, b) => {
-            if (b.percent !== a.percent) return b.percent - a.percent;
-            return a.name.localeCompare(b.name);
-        });
-        
-        // Render standings table
-        let html = `
-            <table class="standings-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>🏃</th>
-                        <th>🏊</th>
-                        <th>🚴</th>
-                        <th>%</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        participants.forEach((p) => {
-            const runClass = p.run > 0 ? '' : 'zero';
-            const swimClass = p.swim > 0 ? '' : 'zero';
-            const bikeClass = p.bike > 0 ? '' : 'zero';
-            
-            html += `
-                <tr>
-                    <td class="standing-name">${p.name}</td>
-                    <td class="standing-miles ${runClass}">${p.run.toFixed(1)}</td>
-                    <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
-                    <td class="standing-miles ${bikeClass}">${p.bike.toFixed(1)}</td>
-                    <td class="standing-percent" style="color: ${getPercentColor(p.percent)}">${(p.percent * 100).toFixed(0)}%</td>
-                    <td></td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table>';
-        
-        container.innerHTML = html || '<div class="standings-error">No data found</div>';
+        currentParticipants = participants;
+        sortColumn = 'percent';
+        sortAsc = false;
+        renderStandings();
         
         // Render combined table
         if (combined) {

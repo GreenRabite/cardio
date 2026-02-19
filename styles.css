@@ -243,6 +243,40 @@ body {
     letter-spacing: 0.5px;
 }
 
+.standings-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.standings-table th.sortable:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.standings-table th.sortable.active {
+    color: rgba(255, 255, 255, 1);
+    position: relative;
+}
+
+.standings-table th.sortable.active::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px dashed rgba(255, 255, 255, 0.6);
+    animation: spin-dash 8s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes spin-dash {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 .standings-table td:first-child,
 .standings-table th:first-child {
     text-align: left;
