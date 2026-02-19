@@ -145,7 +145,7 @@ function getPercentColor(percent) {
 
 function sortBy(column) {
     sortColumn = column;
-    sortAsc = false;
+    sortAsc = column === 'name';
     renderStandings();
 }
 
