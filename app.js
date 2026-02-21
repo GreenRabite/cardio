@@ -405,7 +405,24 @@ function signOut() {
     if (currentParticipants.length) renderStandings();
 }
 
+const SPINNER_HTML = '<div class="signin-spinner"></div>';
+
+function showSpinners() {
+    const header = document.getElementById('google-signin-btn');
+    if (!header.querySelector('.signin-spinner') && !header.classList.contains('hidden')) {
+        header.innerHTML = SPINNER_HTML;
+    }
+}
+
 function initGoogleSignIn() {
+    const savedUser = localStorage.getItem('cardio_user');
+    if (savedUser) {
+        showUserProfile(JSON.parse(savedUser));
+        return;
+    }
+
+    showSpinners();
+
     if (typeof google === 'undefined') {
         setTimeout(initGoogleSignIn, 100);
         return;
@@ -416,12 +433,7 @@ function initGoogleSignIn() {
         auto_select: true
     });
 
-    const savedUser = localStorage.getItem('cardio_user');
-    if (savedUser) {
-        showUserProfile(JSON.parse(savedUser));
-    } else {
-        showSignInButton();
-    }
+    showSignInButton();
 }
 
 document.getElementById('sign-out-btn').addEventListener('click', signOut);
@@ -436,13 +448,28 @@ function showUpdateModal() {
     const modal = document.getElementById('update-modal');
     modal.classList.remove('hidden');
 
+    const modalBtn = document.getElementById('modal-signin-btn');
     if (typeof google !== 'undefined') {
-        google.accounts.id.renderButton(document.getElementById('modal-signin-btn'), {
+        google.accounts.id.renderButton(modalBtn, {
             theme: 'filled_black',
             size: 'large',
             shape: 'pill',
             width: 250
         });
+    } else {
+        modalBtn.innerHTML = SPINNER_HTML;
+        const waitForGoogle = setInterval(() => {
+            if (typeof google !== 'undefined') {
+                clearInterval(waitForGoogle);
+                modalBtn.innerHTML = '';
+                google.accounts.id.renderButton(modalBtn, {
+                    theme: 'filled_black',
+                    size: 'large',
+                    shape: 'pill',
+                    width: 250
+                });
+            }
+        }, 100);
     }
 
     document.getElementById('modal-close').addEventListener('click', () => {
