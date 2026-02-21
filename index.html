@@ -15,12 +15,21 @@
     <link rel="icon" type="image/png" sizes="32x32" href="./icon-assets/Assets.xcassets/AppIcon.appiconset/32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./icon-assets/Assets.xcassets/AppIcon.appiconset/16.png">
     <link rel="stylesheet" href="./styles.css">
+    <script src="https://accounts.google.com/gsi/client" async></script>
     <script src="./app.js" defer></script>
 </head>
 <body>
     <div class="header">
         <h1>Cardio Challenge</h1>
         <p>February 2026</p>
+        <div class="auth-section" id="auth-section">
+            <div id="google-signin-btn"></div>
+            <div class="user-profile hidden" id="user-profile">
+                <img class="user-avatar" id="user-avatar" alt="" />
+                <span class="user-name" id="user-name"></span>
+                <button class="sign-out-btn" id="sign-out-btn">Sign out</button>
+            </div>
+        </div>
     </div>
 
     <div class="cards">
@@ -66,6 +75,18 @@
 
     <div class="footer">
         <p>Add to Home Screen for quick access</p>
+    </div>
+
+    <div class="modal-overlay hidden" id="update-modal">
+        <div class="modal">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <p class="modal-text">You can now sign in with Google to highlight your name in the standings.</p>
+            <div id="modal-signin-btn" class="modal-signin"></div>
+            <label class="modal-checkbox">
+                <input type="checkbox" id="modal-dont-show" />
+                <span>Don't show this again until new updates</span>
+            </label>
+        </div>
     </div>
 </body>
 </html>

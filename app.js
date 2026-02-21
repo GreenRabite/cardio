@@ -1,6 +1,25 @@
 const SHEET_ID = '1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ';
 const SHEET_GID = '0';
 const MAX_WEEK = 4; // Total number of weeks in the challenge
+const GOOGLE_CLIENT_ID =
+  "1007696024316-hcqq52qbrp4l5fl8mna3aq5juegbscts.apps.googleusercontent.com";
+
+const EMAIL_TO_NAME = {
+    'green.rabite@gmail.com': 'Andy',
+    'christopherkha@gmail.com': 'Ckha',
+    'amchu3@gmail.com': 'Amanda',
+    'harrisonseung@gmail.com': 'Harrison',
+    'dgcho8@gmail.com': 'Dcho',
+    'spencerla@gmail.com': 'Spencer',
+    'chanmaricela@gmail.com': 'Maricela'
+};
+
+function getSignedInName() {
+    const saved = localStorage.getItem('cardio_user');
+    if (!saved) return null;
+    const user = JSON.parse(saved);
+    return EMAIL_TO_NAME[user.email] || null;
+}
 
 // Week date ranges - populated from spreadsheet header row
 let weekDates = [''];
@@ -178,13 +197,16 @@ function renderStandings() {
             <tbody>
     `;
 
+    const signedInName = getSignedInName();
+
     sorted.forEach((p) => {
         const runClass = p.run > 0 ? '' : 'zero';
         const swimClass = p.swim > 0 ? '' : 'zero';
         const bikeClass = p.bike > 0 ? '' : 'zero';
+        const isMe = signedInName && p.name === signedInName;
 
         html += `
-            <tr>
+            <tr class="${isMe ? 'highlight-me' : ''}">
                 <td class="standing-name">${p.name}</td>
                 <td class="standing-miles ${runClass}">${p.run.toFixed(1)}</td>
                 <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
@@ -332,6 +354,114 @@ loadStandings();
 document.getElementById('week-prev').addEventListener('click', () => changeWeek(-1));
 document.getElementById('week-next').addEventListener('click', () => changeWeek(1));
 document.getElementById('refresh-btn').addEventListener('click', loadStandings);
+
+// Google Sign-In
+function decodeJwt(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(atob(base64).split('').map(
+        c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join('')));
+}
+
+function showUserProfile(user) {
+    document.getElementById('google-signin-btn').classList.add('hidden');
+    const profile = document.getElementById('user-profile');
+    profile.classList.remove('hidden');
+    document.getElementById('user-avatar').src = user.picture;
+    document.getElementById('user-name').textContent = user.name;
+}
+
+function showSignInButton() {
+    document.getElementById('user-profile').classList.add('hidden');
+    const btnContainer = document.getElementById('google-signin-btn');
+    btnContainer.classList.remove('hidden');
+    btnContainer.innerHTML = '';
+    if (typeof google !== 'undefined') {
+        google.accounts.id.renderButton(btnContainer, {
+            theme: 'filled_black',
+            size: 'medium',
+            shape: 'pill'
+        });
+    }
+}
+
+function handleCredentialResponse(response) {
+    const user = decodeJwt(response.credential);
+    const userData = { name: user.name, picture: user.picture, email: user.email };
+    localStorage.setItem('cardio_user', JSON.stringify(userData));
+    showUserProfile(userData);
+    if (currentParticipants.length) renderStandings();
+    document.getElementById('update-modal').classList.add('hidden');
+}
+
+function signOut() {
+    localStorage.removeItem('cardio_user');
+    if (typeof google !== 'undefined') {
+        google.accounts.id.disableAutoSelect();
+    }
+    showSignInButton();
+    if (currentParticipants.length) renderStandings();
+}
+
+function initGoogleSignIn() {
+    if (typeof google === 'undefined') {
+        setTimeout(initGoogleSignIn, 100);
+        return;
+    }
+    google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: true
+    });
+
+    const savedUser = localStorage.getItem('cardio_user');
+    if (savedUser) {
+        showUserProfile(JSON.parse(savedUser));
+    } else {
+        showSignInButton();
+    }
+}
+
+document.getElementById('sign-out-btn').addEventListener('click', signOut);
+initGoogleSignIn();
+
+// Update modal
+function showUpdateModal() {
+    const isLoggedIn = localStorage.getItem('cardio_user');
+    const shouldHide = localStorage.getItem('shouldHideModal');
+    if (isLoggedIn || shouldHide) return;
+
+    const modal = document.getElementById('update-modal');
+    modal.classList.remove('hidden');
+
+    if (typeof google !== 'undefined') {
+        google.accounts.id.renderButton(document.getElementById('modal-signin-btn'), {
+            theme: 'filled_black',
+            size: 'large',
+            shape: 'pill',
+            width: 250
+        });
+    }
+
+    document.getElementById('modal-close').addEventListener('click', () => {
+        if (document.getElementById('modal-dont-show').checked) {
+            localStorage.setItem('shouldHideModal', 'true');
+        }
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            if (document.getElementById('modal-dont-show').checked) {
+                localStorage.setItem('shouldHideModal', 'true');
+            }
+            modal.classList.add('hidden');
+        }
+    });
+}
+
+showUpdateModal();
 
 // Register service worker for offline support and auto-updates
 if ('serviceWorker' in navigator) {
