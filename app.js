@@ -381,7 +381,8 @@ function showSignInButton() {
         google.accounts.id.renderButton(btnContainer, {
             theme: 'filled_black',
             size: 'medium',
-            shape: 'pill'
+            shape: 'pill',
+            width: 200
         });
     }
 }
