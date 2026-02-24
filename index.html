@@ -33,21 +33,25 @@
     </div>
 
     <div class="cards-grid">
-        <a href="https://docs.google.com/spreadsheets/u/1/d/1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ/edit?gid=0#gid=0" class="card card-tracker">
-            <div class="card-icon">📊</div>
-            <div class="card-content">
-                <span class="card-label">Tracker</span>
-                <p>Standings &amp; progress</p>
-            </div>
-        </a>
+        <div class="card-wrapper">
+            <a href="https://docs.google.com/spreadsheets/u/1/d/1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ/edit?gid=0#gid=0" class="card card-tracker">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <span class="card-label">Tracker</span>
+                    <p>Standings &amp; progress</p>
+                </div>
+            </a>
+        </div>
 
-        <a href="https://forms.gle/7K6EH5aNPKMWc7e59" class="card card-log">
-            <div class="card-icon">✏️</div>
-            <div class="card-content">
-                <span class="card-label">Log Activity</span>
-                <p>Via Google Forms</p>
-            </div>
-        </a>
+        <div class="card-wrapper">
+            <a href="https://forms.gle/7K6EH5aNPKMWc7e59" class="card card-log">
+                <div class="card-icon">✏️</div>
+                <div class="card-content">
+                    <span class="card-label">Log Activity</span>
+                    <p>Via Google Forms</p>
+                </div>
+            </a>
+        </div>
 
         <div class="card-wrapper">
             <button class="card card-quick-log" id="quick-log-btn" disabled title="Sign in to use Quick Log">
@@ -60,13 +64,15 @@
             <span class="card-tooltip">Sign in to use</span>
         </div>
 
-        <button class="card card-swim-calc" id="swim-calc-btn">
-            <div class="card-icon">🏊</div>
-            <div class="card-content">
-                <span class="card-label">Swim Calc</span>
-                <p>Convert laps to miles</p>
-            </div>
-        </button>
+        <div class="card-wrapper">
+            <button class="card card-swim-calc" id="swim-calc-btn">
+                <div class="card-icon">🏊</div>
+                <div class="card-content">
+                    <span class="card-label">Swim Calc</span>
+                    <p>Convert laps to miles</p>
+                </div>
+            </button>
+        </div>
     </div>
     <div class="toast hidden" id="toast"></div>
 

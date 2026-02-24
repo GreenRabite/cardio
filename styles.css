@@ -235,9 +235,9 @@ body {
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 8px;
     width: 100%;
-    max-width: 400px;
+    max-width: 340px;
     margin-top: 20px;
 }
 
@@ -258,6 +258,7 @@ body {
 .card-wrapper {
     position: relative;
     display: flex;
+    max-width: 185px;
 }
 
 .card-wrapper .card {
