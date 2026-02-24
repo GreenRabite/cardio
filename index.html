@@ -32,24 +32,90 @@
         </div>
     </div>
 
-    <div class="cards">
+    <div class="cards-grid">
         <a href="https://docs.google.com/spreadsheets/u/1/d/1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ/edit?gid=0#gid=0" class="card card-tracker">
             <div class="card-icon">📊</div>
             <div class="card-content">
-                <h2>View Tracker</h2>
-                <p>Check standings and weekly progress</p>
+                <span class="card-label">Tracker</span>
+                <p>Standings &amp; progress</p>
             </div>
-            <span class="card-arrow">›</span>
         </a>
 
         <a href="https://forms.gle/7K6EH5aNPKMWc7e59" class="card card-log">
             <div class="card-icon">✏️</div>
             <div class="card-content">
-                <h2>Log Activity</h2>
-                <p>Record your run, swim, or bike</p>
+                <span class="card-label">Log Activity</span>
+                <p>Via Google Forms</p>
             </div>
-            <span class="card-arrow">›</span>
         </a>
+
+        <div class="card-wrapper">
+            <button class="card card-quick-log" id="quick-log-btn" disabled title="Sign in to use Quick Log">
+                <div class="card-icon">⚡</div>
+                <div class="card-content">
+                    <span class="card-label">Quick Log</span>
+                    <p>Log without leaving</p>
+                </div>
+            </button>
+            <span class="card-tooltip">Sign in to use</span>
+        </div>
+
+        <button class="card card-swim-calc" id="swim-calc-btn">
+            <div class="card-icon">🏊</div>
+            <div class="card-content">
+                <span class="card-label">Swim Calc</span>
+                <p>Convert laps to miles</p>
+            </div>
+        </button>
+    </div>
+    <div class="toast hidden" id="toast"></div>
+
+    <div class="modal-overlay hidden" id="quick-log-modal">
+        <div class="modal quick-log-modal-content">
+            <button class="modal-close" id="quick-log-close">&times;</button>
+            <h2 class="quick-log-title">Log Activity</h2>
+            <form id="quick-log-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="log-activity">Activity</label>
+                    <div class="activity-selector" id="activity-selector">
+                        <button type="button" class="activity-btn" data-value="Run">🏃 Run</button>
+                        <button type="button" class="activity-btn" data-value="Swim">🏊 Swim</button>
+                        <button type="button" class="activity-btn" data-value="Bike">🚴 Bike</button>
+                    </div>
+                    <input type="hidden" id="log-activity" required />
+                </div>
+                <div class="form-group">
+                    <label for="log-miles">Miles</label>
+                    <input type="number" id="log-miles" step="0.01" min="0" inputmode="decimal" placeholder="0.00" required />
+                </div>
+                <div class="form-group">
+                    <label for="log-date">Date</label>
+                    <input type="date" id="log-date" required />
+                </div>
+                <button type="submit" class="submit-btn" id="quick-log-submit">Submit</button>
+            </form>
+            <div class="form-status hidden" id="form-status"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="swim-calc-modal">
+        <div class="modal quick-log-modal-content">
+            <button class="modal-close" id="swim-calc-close">&times;</button>
+            <h2 class="quick-log-title">Swim Calculator</h2>
+            <div class="form-group">
+                <label for="swim-yard-per-lap">Yards per lap</label>
+                <input type="number" id="swim-yard-per-lap" value="50" min="1" inputmode="numeric" />
+            </div>
+            <div class="form-group">
+                <label for="swim-laps">Number of laps</label>
+                <input type="number" id="swim-laps" min="0" inputmode="numeric" placeholder="0" />
+            </div>
+            <div class="swim-result hidden" id="swim-result">
+                <span class="swim-miles" id="swim-miles">0.00</span>
+                <span class="swim-miles-label">miles</span>
+                <button class="copy-btn" id="swim-copy">Copy</button>
+            </div>
+        </div>
     </div>
 
     <div class="standings">

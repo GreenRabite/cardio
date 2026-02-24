@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cardio-v8';
+const CACHE_NAME = 'cardio-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -32,6 +32,8 @@ self.addEventListener('activate', (event) => {
 
 // Fetch: always network-first, fall back to cache when offline
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {

@@ -392,6 +392,7 @@ function handleCredentialResponse(response) {
     const userData = { name: user.name, picture: user.picture, email: user.email };
     localStorage.setItem('cardio_user', JSON.stringify(userData));
     showUserProfile(userData);
+    updateQuickLogState();
     if (currentParticipants.length) renderStandings();
     document.getElementById('update-modal').classList.add('hidden');
 }
@@ -402,6 +403,7 @@ function signOut() {
         google.accounts.id.disableAutoSelect();
     }
     showSignInButton();
+    updateQuickLogState();
     if (currentParticipants.length) renderStandings();
 }
 
@@ -490,6 +492,179 @@ function showUpdateModal() {
 }
 
 showUpdateModal();
+
+// Toast
+function showToast(message, duration = 2500) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+    }, duration);
+}
+
+function updateQuickLogState() {
+    const btn = document.getElementById('quick-log-btn');
+    const isLoggedIn = !!localStorage.getItem('cardio_user');
+    btn.disabled = !isLoggedIn;
+    btn.title = isLoggedIn ? 'Log activity' : 'Sign in to use Quick Log';
+}
+
+// Quick Log modal — posts to Apps Script → spreadsheet
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbzx3lznvrc4EpRkFVQM8KZe9bDtxVqh9KG8J-UL2o4yVwLQ9kLLto_oBfCPxGgUrRMm/exec";
+
+(function initQuickLog() {
+    const modal = document.getElementById('quick-log-modal');
+    const openBtn = document.getElementById('quick-log-btn');
+    const closeBtn = document.getElementById('quick-log-close');
+    const form = document.getElementById('quick-log-form');
+    const activityInput = document.getElementById('log-activity');
+    const milesInput = document.getElementById('log-miles');
+    const dateInput = document.getElementById('log-date');
+    const submitBtn = document.getElementById('quick-log-submit');
+    const statusEl = document.getElementById('form-status');
+
+    const today = new Date();
+    dateInput.value = today.toISOString().split('T')[0];
+
+    updateQuickLogState();
+
+    document.querySelectorAll('.activity-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            activityInput.value = btn.dataset.value;
+        });
+    });
+
+    function openModal() {
+        if (openBtn.disabled) return;
+        modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
+
+    function resetForm() {
+        form.reset();
+        dateInput.value = today.toISOString().split('T')[0];
+        document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('selected'));
+        activityInput.value = '';
+        statusEl.classList.add('hidden');
+        statusEl.className = 'form-status hidden';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    openBtn.parentElement.addEventListener('click', () => {
+        if (openBtn.disabled) showToast('Sign in to log activity');
+    });
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!activityInput.value) {
+            statusEl.textContent = 'Please select an activity.';
+            statusEl.className = 'form-status error';
+            statusEl.classList.remove('hidden');
+            return;
+        }
+
+        const miles = parseFloat(milesInput.value);
+        if (!miles || miles <= 0) {
+            statusEl.textContent = 'Please enter a valid distance.';
+            statusEl.className = 'form-status error';
+            statusEl.classList.remove('hidden');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+        statusEl.classList.add('hidden');
+
+        const user = JSON.parse(localStorage.getItem('cardio_user'));
+        const [y, m, d] = dateInput.value.split('-');
+        const dateFormatted = `${parseInt(m)}/${parseInt(d)}/${y}`;
+
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    email: user.email,
+                    activity: activityInput.value,
+                    miles: miles,
+                    date: dateFormatted,
+                }),
+            });
+            const result = await res.json();
+            if (!result.success) throw new Error(result.error);
+
+            statusEl.textContent = 'Activity logged!';
+            statusEl.className = 'form-status success';
+            statusEl.classList.remove('hidden');
+            submitBtn.textContent = 'Submitted';
+            setTimeout(() => {
+                closeModal();
+                resetForm();
+            }, 1200);
+        } catch {
+            statusEl.textContent = 'Something went wrong. Try again.';
+            statusEl.className = 'form-status error';
+            statusEl.classList.remove('hidden');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+        }
+    });
+})();
+
+// Swim Calculator modal
+(function initSwimCalc() {
+    const modal = document.getElementById('swim-calc-modal');
+    const openBtn = document.getElementById('swim-calc-btn');
+    const closeBtn = document.getElementById('swim-calc-close');
+    const yardInput = document.getElementById('swim-yard-per-lap');
+    const lapInput = document.getElementById('swim-laps');
+    const resultEl = document.getElementById('swim-result');
+    const milesEl = document.getElementById('swim-miles');
+    const copyBtn = document.getElementById('swim-copy');
+
+    function calculate() {
+        const yards = parseInt(yardInput.value) || 0;
+        const laps = parseInt(lapInput.value) || 0;
+        if (laps > 0 && yards > 0) {
+            const miles = (yards * laps) / 1760;
+            milesEl.textContent = miles.toFixed(2);
+            resultEl.classList.remove('hidden');
+        } else {
+            resultEl.classList.add('hidden');
+        }
+    }
+
+    yardInput.addEventListener('input', calculate);
+    lapInput.addEventListener('input', calculate);
+
+    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(milesEl.textContent).then(() => {
+            showToast('Copied to clipboard');
+        });
+    });
+})();
 
 // Register service worker for offline support and auto-updates
 if ('serviceWorker' in navigator) {
