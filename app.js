@@ -1,6 +1,6 @@
 const SHEET_ID = '1FqFJqc9eYzOLVMbT0EGwMr13EDYr_lEOKQhDlptkldQ';
 const SHEET_GID = '0';
-const MAX_WEEK = 4; // Total number of weeks in the challenge
+const MAX_WEEK = 6; // Total number of weeks in the challenge
 const GOOGLE_CLIENT_ID =
   "1007696024316-hcqq52qbrp4l5fl8mna3aq5juegbscts.apps.googleusercontent.com";
 
