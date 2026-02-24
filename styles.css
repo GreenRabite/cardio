@@ -247,6 +247,19 @@ body {
     font-family: inherit;
     text-align: left;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 0;
+    overflow: hidden;
+    padding: 12px;
+    gap: 8px;
+}
+
+.cards-grid .card-content {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.cards-grid .card-content p {
+    white-space: normal;
 }
 
 .card-label {
@@ -258,11 +271,12 @@ body {
 .card-wrapper {
     position: relative;
     display: flex;
-    max-width: 185px;
+    min-width: 0;
 }
 
 .card-wrapper .card {
     flex: 1;
+    min-width: 0;
 }
 
 .cards-grid .card:disabled {
