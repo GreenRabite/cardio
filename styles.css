@@ -607,17 +607,13 @@ body {
 
 /* Fixed column widths */
 .standings-table th:nth-child(1),
-.standings-table td:nth-child(1) { width: 32%; }
+.standings-table td:nth-child(1) { width: 42%; }
 .standings-table th:nth-child(2),
-.standings-table td:nth-child(2) { width: 14%; }
+.standings-table td:nth-child(2) { width: 24%; }
 .standings-table th:nth-child(3),
-.standings-table td:nth-child(3) { width: 16%; }
+.standings-table td:nth-child(3) { width: 24%; }
 .standings-table th:nth-child(4),
-.standings-table td:nth-child(4) { width: 14%; }
-.standings-table th:nth-child(5),
-.standings-table td:nth-child(5) { width: 16%; }
-.standings-table th:nth-child(6),
-.standings-table td:nth-child(6) { width: 12%; }
+.standings-table td:nth-child(4) { width: 10%; }
 
 .standings-table th {
     font-size: 11px;
@@ -715,6 +711,33 @@ body {
 
 .standing-miles.zero {
     color: rgba(255, 255, 255, 0.3);
+}
+
+.standing-active-days {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.standing-active-days.good {
+    color: #22c55e;
+}
+
+.standings-table th.active-days-header {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.standing-battery-emoji {
+    font-size: 16px;
+    text-align: center;
+}
+
+.standing-battery-emoji.progress {
+    opacity: 0.9;
+}
+
+.standing-battery-emoji.empty {
+    opacity: 0.8;
 }
 
 .standing-percent {

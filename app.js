@@ -27,7 +27,7 @@ let weekInitialized = false;
 
 let currentWeek = 1;
 let currentParticipants = [];
-let sortColumn = 'percent';
+let sortColumn = 'activeDays';
 let sortAsc = false;
 
 // Parse date string (MM/DD) into a Date object for current year
@@ -70,20 +70,28 @@ function determineCurrentWeek() {
 }
 
 // Get column indices for a given week
-// Week 1: columns 2, 3, 4, 5 (Run, Swim, Bike, %)
-// Week 2+: starts at column 7, then 5 columns per week (4 data + 1 separator)
+// NOTE: These are 0-based indices into rows[i].c from the gviz response.
+// Week 1: indices 6,7,8 (run equivalent miles, Active Days, %)
+// Week 2+: starts at index 13,14,15, then 5 columns per week (5 data + 1 separator)
 function getWeekColumns(week) {
     if (week === 1) {
-        return { run: 2, swim: 3, bike: 4, percent: 5 };
+        return { run: 6, swim: -1, bike: -1, activeDays: 7, percent: 8 };
     }
-    const baseCol = 7 + (week - 2) * 5;
-    return { run: baseCol, swim: baseCol + 1, bike: baseCol + 2, percent: baseCol + 3 };
+    const baseCol = 13 + (week - 2) * 7;
+    return {
+        run: baseCol,
+        swim: -1,
+        bike: -1,
+        activeDays: baseCol + 1,
+        percent: baseCol + 2
+    };
 }
 
 // Get date column indices for a given week
-// Week 1: cols 3 & 4, Week 2: cols 8 & 9, etc. (offset by 5 each week)
+// NOTE: These are 0-based indices into rows[0].c from the gviz response.
+// Week 1: indices 4 & 5, Week 2: 11 & 12, Week 3: 18 & 19, etc (offset by 6 each week)
 function getWeekDateColumns(week) {
-    const baseCol = 3 + (week - 1) * 5;
+    const baseCol = 4 + (week - 1) * 7;
     return { start: baseCol, end: baseCol + 1 };
 }
 
@@ -126,19 +134,15 @@ function getSkeletonHTML(rows = 6, excludeHeaders = false) {
                 <td><div class="skeleton-bar number"></div></td>
                 <td><div class="skeleton-bar number"></div></td>
                 <td><div class="skeleton-bar number"></div></td>
-                <td><div class="skeleton-bar percent"></div></td>
-                <td></td>
             </tr>
         `).join('');
 
     const headers = `<thead>
                 <tr>
                     <th>Name</th>
-                    <th>🏃</th>
-                    <th>🏊</th>
-                    <th>🚴</th>
-                    <th>%</th>
-                    <th></th>
+                    <th>Run Eq Mi</th>
+                    <th>Active</th>
+                    <th>🔋</th>
                 </tr>
             </thead>`;
     return `
@@ -168,6 +172,12 @@ function sortBy(column) {
     renderStandings();
 }
 
+function getBatteryRank(percent, activeDays) {
+    if (percent >= 1 && activeDays >= 3) return 2; // full
+    if (activeDays <= 1 && percent < 0.2) return 0; // low
+    return 1; // charging/in progress
+}
+
 function renderStandings() {
     const container = document.getElementById('standings-list');
     const sorted = [...currentParticipants].sort((a, b) => {
@@ -187,11 +197,9 @@ function renderStandings() {
             <thead>
                 <tr>
                     <th class="sortable sort-name${sortColumn === 'name' ? ' active' : ''}" onclick="sortBy('name')">Name</th>
-                    <th class="sortable${sortColumn === 'run' ? ' active' : ''}" onclick="sortBy('run')">🏃</th>
-                    <th class="sortable${sortColumn === 'swim' ? ' active' : ''}" onclick="sortBy('swim')">🏊</th>
-                    <th class="sortable${sortColumn === 'bike' ? ' active' : ''}" onclick="sortBy('bike')">🚴</th>
-                    <th class="sortable${sortColumn === 'percent' ? ' active' : ''}" onclick="sortBy('percent')">%</th>
-                    <th></th>
+                    <th class="sortable${sortColumn === 'run' ? ' active' : ''}" onclick="sortBy('run')">Run Eq Mi</th>
+                    <th class="sortable active-days-header${sortColumn === 'activeDays' ? ' active' : ''}" onclick="sortBy('activeDays')">Active</th>
+                    <th class="sortable${sortColumn === 'batteryRank' ? ' active' : ''}" onclick="sortBy('batteryRank')">🔋</th>
                 </tr>
             </thead>
             <tbody>
@@ -201,18 +209,19 @@ function renderStandings() {
 
     sorted.forEach((p) => {
         const runClass = p.run > 0 ? '' : 'zero';
-        const swimClass = p.swim > 0 ? '' : 'zero';
-        const bikeClass = p.bike > 0 ? '' : 'zero';
+        const activeDaysClass = p.activeDays >= 3 ? 'good' : (p.activeDays > 0 ? '' : 'zero');
+        const fullBattery = p.batteryRank === 2;
+        const emptyBattery = p.batteryRank === 0;
+        const batteryEmoji = fullBattery ? '🔋' : (emptyBattery ? '🪫' : '⚡');
+        const batteryClass = fullBattery ? 'full' : (emptyBattery ? 'empty' : 'progress');
         const isMe = signedInName && p.name === signedInName;
 
         html += `
             <tr class="${isMe ? 'highlight-me' : ''}">
                 <td class="standing-name">${p.name}</td>
                 <td class="standing-miles ${runClass}">${p.run.toFixed(1)}</td>
-                <td class="standing-miles ${swimClass}">${p.swim.toFixed(2)}</td>
-                <td class="standing-miles ${bikeClass}">${p.bike.toFixed(1)}</td>
-                <td class="standing-percent" style="color: ${getPercentColor(p.percent)}">${(p.percent * 100).toFixed(0)}%</td>
-                <td></td>
+                <td class="standing-active-days ${activeDaysClass}">${p.activeDays.toFixed(0)}</td>
+                <td class="standing-battery-emoji ${batteryClass}">${batteryEmoji}</td>
             </tr>
         `;
     });
@@ -287,48 +296,45 @@ async function loadStandings() {
                 const row = rows[i].c;
                 const name = row[0]?.v || '';
                 const run = parseFloat(row[cols.run]?.v) || 0;
-                const swim = parseFloat(row[cols.swim]?.v) || 0;
-                const bike = parseFloat(row[cols.bike]?.v) || 0;
+                const activeDays = parseFloat(row[cols.activeDays]?.v) || 0;
                 const percent = parseFloat(row[cols.percent]?.v) || 0;
+                const batteryRank = getBatteryRank(percent, activeDays);
                 
                 // Capture Combined row
                 if (name === 'Combined') {
-                    combined = { name, run, swim, bike, percent };
+                    combined = { name, run, activeDays, percent, batteryRank };
                     continue;
                 }
                 
                 // Skip non-participant rows
                 const skipNames = ['Log Your Activity', 'Log Your Acitivity', ''];
                 if (name && !skipNames.includes(name)) {
-                    participants.push({ name, run, swim, bike, percent });
+                    participants.push({ name, run, activeDays, percent, batteryRank });
                 }
             }
         }
         
         currentParticipants = participants;
-        sortColumn = 'percent';
+        sortColumn = 'activeDays';
         sortAsc = false;
         renderStandings();
         
         // Render combined table
         if (combined) {
             const runClass = combined.run > 0 ? '' : 'zero';
-            const swimClass = combined.swim > 0 ? '' : 'zero';
-            const bikeClass = combined.bike > 0 ? '' : 'zero';
-            
-            const combinedBattery = combined.percent >= 1
-                ? '<img src="./assets/cloud.gif" class="battery-sprite" alt="100%">'
-                : '<img src="./assets/nu.gif" class="battery-sprite nu-sprite" alt="">';
+            const activeDaysClass = combined.activeDays >= 3 ? 'good' : (combined.activeDays > 0 ? '' : 'zero');
+            const everyoneFullBattery = participants.length > 0 && participants.every((p) => p.batteryRank === 2);
+            const combinedBatterySprite = everyoneFullBattery
+                ? '<img src="./assets/cloud.gif" class="battery-sprite" alt="Everyone full battery">'
+                : '<img src="./assets/nu.gif" class="battery-sprite nu-sprite" alt="Not everyone full battery">';
             combinedContainer.innerHTML = `
                 <table class="standings-table">
                     <tbody>
                         <tr>
                             <td class="standing-name">${combined.name}</td>
                             <td class="standing-miles ${runClass}">${combined.run.toFixed(1)}</td>
-                            <td class="standing-miles ${swimClass}">${combined.swim.toFixed(2)}</td>
-                            <td class="standing-miles ${bikeClass}">${combined.bike.toFixed(1)}</td>
-                            <td class="standing-percent" style="color: ${getPercentColor(combined.percent)}">${(combined.percent * 100).toFixed(0)}%</td>
-                            <td class="standing-battery">${combinedBattery}</td>
+                            <td class="standing-active-days ${activeDaysClass}">${combined.activeDays.toFixed(0)}</td>
+                            <td class="standing-battery">${combinedBatterySprite}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -527,8 +533,14 @@ const APPS_SCRIPT_URL =
     const submitBtn = document.getElementById('quick-log-submit');
     const statusEl = document.getElementById('form-status');
 
-    const today = new Date();
-    dateInput.value = today.toISOString().split('T')[0];
+    function getLocalDateInputValue(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    dateInput.value = getLocalDateInputValue();
 
     updateQuickLogState();
 
@@ -551,7 +563,7 @@ const APPS_SCRIPT_URL =
 
     function resetForm() {
         form.reset();
-        dateInput.value = today.toISOString().split('T')[0];
+        dateInput.value = getLocalDateInputValue();
         document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('selected'));
         activityInput.value = '';
         statusEl.classList.add('hidden');
@@ -579,8 +591,9 @@ const APPS_SCRIPT_URL =
             return;
         }
 
-        const miles = parseFloat(milesInput.value);
-        if (!miles || miles <= 0) {
+        const milesRaw = milesInput.value.trim();
+        const miles = milesRaw === '' ? '' : parseFloat(milesRaw);
+        if (milesRaw !== '' && (!Number.isFinite(miles) || miles <= 0)) {
             statusEl.textContent = 'Please enter a valid distance.';
             statusEl.className = 'form-status error';
             statusEl.classList.remove('hidden');
